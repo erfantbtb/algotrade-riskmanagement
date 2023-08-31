@@ -18,6 +18,10 @@ class Measurements:
         cumulative_returns = (annual_returns + 1).cumprod() - 1
         return cumulative_returns
 
+    def convert_timeframe(self, rets: pd.DataFrame, timeframe: str):
+        desired_returns = (1 + rets).resample(timeframe).prod() - 1
+        return desired_returns
+
     def volatility(self, rets, freq: float = 1):
         vol = rets.std(ddof=1)
         return vol * np.sqrt(freq)
@@ -99,7 +103,7 @@ class Measurements:
             cum_returns = self.cumulative_return(rets)
             statistics = {
                 "max_drawdown": [self.max_drawdown(rets)],
-                "volatility": [self.volatility(rets, 252)],
+                "volatility": [self.volatility(rets, 1)],
                 "sharpe_ratio": [self.sharpe_ratio(rets, freq=1)],
                 "kurtosis": [self.kurtosis(rets)],
                 "skewness": [self.skewness(rets)],
