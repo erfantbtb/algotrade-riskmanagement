@@ -44,6 +44,34 @@ class Risk:
 
         return risk
 
+    def historical_semi_risk(self,
+                             rets: Union[pd.Series, pd.DataFrame],
+                             threshold: float = 0) -> Union[float, pd.DataFrame]:
+        """Estimating semi covariance matrix using historical semi covariance method
+
+        Args:
+            rets (Union[pd.Series, pd.DataFrame]): returns of that stock or portfolio
+            threshold (float, optional): Values that are under this threshold. Defaults to 0.
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            Union[float, pd.DataFrame]: Sample semi risk of that stock or portfolio
+        """
+        semi_rets = rets.loc[rets <= threshold]
+
+        if isinstance(semi_rets, pd.DataFrame):
+            risk = semi_rets.cov()
+
+        elif isinstance(semi_rets, pd.Series):
+            risk = semi_rets.std(ddof=1)
+
+        else:
+            raise TypeError("The argument rets cannot be numpy array")
+
+        return risk
+
     def time_varying_risk(self,
                           rets: Union[pd.Series, pd.DataFrame],
                           p: int,
