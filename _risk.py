@@ -121,7 +121,7 @@ class Risk:
 
     def exp_weighted_average(self,
                              rets: Union[pd.Series, pd.DataFrame],
-                             decay_rate: float = 0.50,
+                             decay_rate: float = 0.90,
                              adjust: bool = True) -> Union[float, pd.DataFrame]:
         """calculating risk with EWMA method (give recent values more weight)
 

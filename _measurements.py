@@ -18,6 +18,10 @@ class Measurements:
         cumulative_returns = (annual_returns + 1).cumprod() - 1
         return cumulative_returns
 
+    def last_return(self, rets):
+        cum_return = (1 + rets).cumprod() - 1
+        return cum_return[-1]
+
     def convert_timeframe(self, rets: pd.DataFrame, timeframe: str):
         desired_returns = (1 + rets).resample(timeframe).prod() - 1
         return desired_returns
@@ -29,6 +33,11 @@ class Measurements:
     def sharpe_ratio(self, rets, rf: float = 0.0, freq: float = 1):
         Rp = rets.mean()
         vol = self.volatility(rets, freq)
+        return (Rp - rf) / vol
+
+    def sortino_ratio(self, rets, rf: float = 0.0):
+        Rp = rets.mean()
+        vol = self.volatility(rets.loc[rets < 0])
         return (Rp - rf) / vol
 
     def max_drawdown(self, rets):
@@ -100,11 +109,12 @@ class Measurements:
             return self.analyze(rets.squeeze(), weights)
 
         elif isinstance(rets, pd.Series):
-            cum_returns = self.cumulative_return(rets)
             statistics = {
+                "cum_return": [self.last_return(rets)],
                 "max_drawdown": [self.max_drawdown(rets)],
                 "volatility": [self.volatility(rets, 1)],
                 "sharpe_ratio": [self.sharpe_ratio(rets, freq=1)],
+                "sortino_ratio": [self.sortino_ratio(rets)],
                 "kurtosis": [self.kurtosis(rets)],
                 "skewness": [self.skewness(rets)],
                 "var_hist": [self.VaR_historical(rets)],

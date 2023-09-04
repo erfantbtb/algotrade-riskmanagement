@@ -76,3 +76,6 @@ class DistributionTest:
             raise TypeError("rets is not pandas dataframe")
 
         return p_val > self.level
+
+    def weibull():
+        pass
