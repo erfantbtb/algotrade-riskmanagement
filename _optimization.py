@@ -25,7 +25,7 @@ class Portfolio:
                                 "EWMA": self.ret_obj.exp_weighted_average,
                                 "JS": self.ret_obj.james_stein_return,
                                 "shrunk": self.ret_obj.sklearn_estimation_shrunk,
-                                "lediot": self.ret_obj.sklearn_estimation_ledoit,
+                                "ledoit": self.ret_obj.sklearn_estimation_ledoit,
                                 "mincovdet": self.ret_obj.sklearn_estimation_mincov,
                                 "oracle": self.ret_obj.sklearn_estimation_oracle, }
 
@@ -33,7 +33,7 @@ class Portfolio:
                                  "EWMA": self.risk_obj.exp_weighted_average,
                                  "semi": self.risk_obj.historical_semi_risk,
                                  "shrunk": self.risk_obj.sklearn_estimation_shrunk,
-                                 "lediot": self.risk_obj.sklearn_estimation_ledoit,
+                                 "ledoit": self.risk_obj.sklearn_estimation_ledoit,
                                  "mincovdet": self.risk_obj.sklearn_estimation_mincov,
                                  "oracle": self.risk_obj.sklearn_estimation_oracle, }
 
@@ -104,7 +104,7 @@ class Portfolio:
         utility = (mean - self.risk_free_rate) - gamma * volatility
         return -utility
 
-    def optimize_portfolio(self, objective: str):
+    def optimize_portfolio(self, objective: str) -> pd.DataFrame:
         """Optimize portfolio based on objective that you want
 
         Args:
@@ -114,7 +114,7 @@ class Portfolio:
             ValueError: _description_
 
         Returns:
-            _type_: _description_
+            pd.DataFrame: _description_
         """
 
         if objective == 'min_risk':
@@ -155,4 +155,4 @@ class Portfolio:
             np.dot(result.x.T, np.dot(self.cov_matrix, result.x)))
         self.result = result
 
-        return np.round(optimized_weights, 3), optimized_return, optimized_volatility
+        return np.round(optimized_weights, 3)

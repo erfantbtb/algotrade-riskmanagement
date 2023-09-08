@@ -68,9 +68,9 @@ class DistributionTest:
             return rets.aggregate(self.pareto_test)
 
         elif isinstance(rets, pd.Series):
-            fit_params = st.loggamma.fit(data)
+            fit_params = st.loggamma.fit(rets)
             loggamma_dist = st.loggamma(*fit_params)
-            _, p_val = st.kstest(data, loggamma_dist.cdf)
+            _, p_val = st.kstest(rets, loggamma_dist.cdf)
 
         else:
             raise TypeError("rets is not pandas dataframe")

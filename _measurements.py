@@ -20,7 +20,7 @@ class Measurements:
 
     def last_return(self, rets):
         cum_return = (1 + rets).cumprod() - 1
-        return cum_return[-1]
+        return cum_return.iloc[-1]
 
     def convert_timeframe(self, rets: pd.DataFrame, timeframe: str):
         desired_returns = (1 + rets).resample(timeframe).prod() - 1
@@ -98,6 +98,15 @@ class Measurements:
 
         else:
             raise TypeError("self.rets should be pandas dataframe!")
+        
+    def portfolio_returns(self, rets, weights: pd.DataFrame) -> pd.DataFrame:
+        if isinstance(rets, pd.DataFrame):
+            idx = rets.index
+            rets = np.dot(rets, weights)
+            rets = pd.DataFrame(rets)
+            rets.columns = ["Portfolio_returns"]
+            rets.index = idx
+            return rets
 
     def analyze(self, rets, weights: pd.DataFrame) -> pd.DataFrame:
         if isinstance(rets, pd.DataFrame):

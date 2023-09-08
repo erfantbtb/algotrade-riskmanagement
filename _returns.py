@@ -5,6 +5,9 @@ from sklearn.covariance import ShrunkCovariance
 from sklearn.covariance import MinCovDet
 from sklearn.covariance import LedoitWolf
 from sklearn.covariance import OAS
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import RidgeCV, LassoCV
+from sklearn.model_selection import cross_validate
 
 
 class ExpectedReturns:
@@ -62,8 +65,8 @@ class ExpectedReturns:
             return rets.aggregate(self.exp_weighted_average, decay_rate=decay_rate, adjust=adjust)
 
         elif isinstance(rets, pd.Series):
-            ewma_mean_matrix = rets.ewm(alpha=decay_rate, adjust=adjust).std()
-            expected_return = ewma_std_matrix
+            ewma_mean_matrix = rets.ewm(alpha=decay_rate, adjust=adjust).mean()
+            expected_return = ewma_mean_matrix
             expected_return = expected_return.iloc[-1]
             return expected_return
 
@@ -116,6 +119,8 @@ class ExpectedReturns:
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
             expected_return = cov.location_
+            expected_return = pd.DataFrame(data=[expected_return],
+                                           columns=rets.columns).squeeze()
             return expected_return
 
         else:
@@ -135,11 +140,13 @@ class ExpectedReturns:
             pd.DataFrame: Expected return of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = LedoitWolf(shrinkage=weight).fit(rets)
+            cov = LedoitWolf().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
             expected_return = cov.location_
+            expected_return = pd.DataFrame(data=[expected_return],
+                                           columns=rets.columns).squeeze()
             return expected_return
 
         else:
@@ -159,11 +166,13 @@ class ExpectedReturns:
             pd.DataFrame: Expected return of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = MinCovDet(shrinkage=weight).fit(rets)
+            cov = MinCovDet().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
             expected_return = cov.location_
+            expected_return = pd.DataFrame(data=[expected_return],
+                                           columns=rets.columns).squeeze()
             return expected_return
 
         else:
@@ -184,12 +193,126 @@ class ExpectedReturns:
             pd.DataFrame: Expected return of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = OAS(shrinkage=weight).fit(rets)
+            cov = OAS().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
             expected_return = cov.location_
+            expected_return = pd.DataFrame(data=[expected_return],
+                                           columns=rets.columns).squeeze()
             return expected_return
 
         else:
             raise TypeError("The argument rets cannot be numpy array")
+        
+    def CAPM(self, 
+             rets: Union[pd.DataFrame, pd.Series],
+             market_returns: pd.DataFrame, 
+             rf: float = 0.0,
+             fit_intercept: bool = False) -> pd.DataFrame:
+        """Single factor model CAPM
+
+        Args:
+            rets (Union[pd.DataFrame, pd.Series]): _description_
+            market_returns (pd.DataFrame): _description_
+            rf (float, optional): _description_. Defaults to 0.0.
+            fit_intercept (bool, optional): _description_. Defaults to False.
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            pd.DataFrame: Expected return! 
+        """
+        if isinstance(rets, pd.DataFrame):
+            rets = rets - rf
+            return rets.aggregate(self.CAPM, market_returns, rf, fit_intercept)
+        
+        elif isinstance(rets, pd.Series):
+            lr = LinearRegression(fit_intercept=fit_intercept)
+            lr.fit(market_returns, rets)
+            beta = lr.coef_ 
+            expected_returns = (beta * market_returns).mean()
+            return expected_returns 
+        
+        else: 
+            raise TypeError("rets should be either pd.DataFrame or pd.Series")
+        
+    def multi_factor(self, 
+                     rets: Union[pd.DataFrame, pd.Series],
+                     factors: pd.DataFrame, 
+                     fit_intercept: bool = False,
+                     rf: float = 0.0) -> pd.DataFrame:
+        """Multi factor models using simple linear regression
+
+        Args:
+            rets (Union[pd.DataFrame, pd.Series]): _description_
+            factors (pd.DataFrame): _description_
+            fit_intercept (bool, optional): _description_. Defaults to False.
+            rf (float, optional): _description_. Defaults to 0.0.
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            pd.DataFrame: Expected return! 
+        """
+        if isinstance(rets, pd.DataFrame):
+            rets = rets - rf
+            return rets.aggregate(self.CAPM, factors, fit_intercept, rf)
+        
+        elif isinstance(rets, pd.Series):
+            lr = LinearRegression(fit_intercept=fit_intercept)
+            lr.fit(factors, rets)
+            beta = lr.coef_ 
+            expected_returns = (beta * factors).mean()
+            return expected_returns 
+        
+        else: 
+            raise TypeError("rets should be either pd.DataFrame or pd.Series")
+        
+    def multi_factor_regularize(self, 
+                     rets: Union[pd.DataFrame, pd.Series],
+                     factors: pd.DataFrame, 
+                     fit_intercept: bool = False,
+                     rf: float = 0.0, 
+                     method: str = "lasso") -> pd.DataFrame:
+        """Multi factor models using lasso and ridge!
+
+        Args:
+            rets (Union[pd.DataFrame, pd.Series]): _description_
+            factors (pd.DataFrame): _description_
+            fit_intercept (bool, optional): _description_. Defaults to False.
+            rf (float, optional): _description_. Defaults to 0.0.
+            method (str, optional): _description_. Defaults to "lasso".
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            pd.DataFrame: Expected return! 
+        """
+        if isinstance(rets, pd.DataFrame):
+            rets = rets - rf
+            return rets.aggregate(self.CAPM, factors, fit_intercept, rf, method)
+        
+        elif isinstance(rets, pd.Series):
+            if method == "lasso":
+                lr = LassoCV(cv=5, fit_intercept=fit_intercept)
+                
+            elif method == "ridge":
+                lr = RidgeCV(cv=5, fit_intercept=fit_intercept)
+                
+            else:
+                raise ValueError("Only possible methods are lasso and ridge")
+                
+            lr.fit(factors, rets)
+            beta = lr.coef_ 
+            expected_returns = (beta * factors).mean()
+            return expected_returns 
+        
+        else: 
+            raise TypeError("rets should be either pd.DataFrame or pd.Series")
+        
+         
+            

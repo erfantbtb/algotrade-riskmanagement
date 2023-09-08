@@ -189,7 +189,7 @@ class Risk:
             pd.DataFrame: Covariance matrix or risk of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = LedoitWolf(shrinkage=weight).fit(rets)
+            cov = LedoitWolf().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
@@ -212,7 +212,7 @@ class Risk:
             pd.DataFrame: Covariance matrix or risk of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = MinCovDet(shrinkage=weight).fit(rets)
+            cov = MinCovDet().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
@@ -236,7 +236,7 @@ class Risk:
             pd.DataFrame: Covariance matrix or risk of portfolio
         """
         if isinstance(rets, pd.DataFrame):
-            cov = OAS(shrinkage=weight).fit(rets)
+            cov = OAS().fit(rets)
             risk = cov.covariance_
             risk = pd.DataFrame(data=risk, index=rets.columns,
                                 columns=rets.columns)
