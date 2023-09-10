@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import Union
+
 from sklearn.covariance import ShrunkCovariance
 from sklearn.covariance import MinCovDet
 from sklearn.covariance import LedoitWolf
