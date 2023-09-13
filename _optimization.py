@@ -86,7 +86,7 @@ class Portfolio:
         """
         return -np.sum(weights * self.expected_returns)
 
-    def _portfolio_volatility(self, weights) -> float:
+    def _portfolio_volatility(self, weights, r_bar = None) -> float:
         """Volatility of portfolio as objective function
 
         Args:
@@ -95,7 +95,8 @@ class Portfolio:
         Returns:
             float: _description_
         """
-        return np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
+        if r_bar == None:
+            return np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
 
     def _portfolio_utility(self, weights, gamma: float = 0.01) -> float:
         mean = np.sum(weights * self.expected_returns)

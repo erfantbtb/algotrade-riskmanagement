@@ -77,35 +77,29 @@ class RegimeDetection:
         else: 
             raise TypeError("rets should be either pd.DataFrame or pd.Series!")
         
-    def plot_regime_color(self, dataset, regime_num=0, TR_num=1, lambda_value=16, log_TR = True):
-        returns = dataset.iloc[:,regime_num]
-        TR = dataset.iloc[:,TR_num]
-        betas = self.trend_filtering(returns.values,lambda_value)
-        regimelist = self.regime_switch(betas)
-        curr_reg = np.sign(betas[0]-1e-5)
-        y_max = np.max(TR) + 500
-        
-        if log_TR:
-            fig, ax = plt.subplots()
-            for i in range(len(regimelist)-1):
-                if curr_reg == 1:
-                    ax.axhspan(0, y_max+500, xmin=regimelist[i]/regimelist[-1], xmax=regimelist[i+1]/regimelist[-1], 
-                        facecolor='green', alpha=0.3)
+    def simulate_returns(self,
+                         mu1: pd.DataFrame, 
+                         mu2: pd.DataFrame,
+                         cov1: pd.DataFrame, 
+                         cov2: pd.DataFrame, 
+                         p11: pd.DataFrame,
+                         p22: pd.DataFrame,
+                         n: int) -> pd.DataFrame:
+        s_1 = np.random.multivariate_normal(mu1, cov1, n).T
+        s_2 = np.random.multivariate_normal(mu2, cov2, n).T
+        regime = np.ones(n)
+        for i in range(n-1):
+            if regime[i] == 1:
+                if np.random.rand() <= p11:
+                    regime[i+1] = 1
                 else:
-                    ax.axhspan(0, y_max+500, xmin=regimelist[i]/regimelist[-1], xmax=regimelist[i+1]/regimelist[-1], 
-                        facecolor='red', alpha=0.5)
-                curr_reg = -1 * curr_reg
-            
-            fig.set_size_inches(12,9)   
-            plt.plot(TR, label='Total Return')
-            plt.ylabel('SP500 Log-scale')
-            plt.xlabel('Year')
-            plt.yscale('log')
-            plt.xlim([dataset.index[0], dataset.index[-1]])
-            plt.ylim([80, 3000])
-            plt.yticks([100, 500, 1000, 2000, 3000],[100, 500, 1000, 2000, 3000])
-            plt.title('Regime Plot of SP 500', fontsize=24)
-            plt.show()
+                    regime[i+1] = 2
+            else:
+                if np.random.rand() <= p22:
+                    regime[i+1] = 2
+                else:
+                    regime[i+1] = 1
+        return (regime*s_1 + (1-regime)*s_2).T
             
         
         

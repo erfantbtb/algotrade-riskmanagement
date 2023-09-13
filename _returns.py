@@ -314,6 +314,4 @@ class ExpectedReturns:
         
         else: 
             raise TypeError("rets should be either pd.DataFrame or pd.Series")
-        
          
-            
