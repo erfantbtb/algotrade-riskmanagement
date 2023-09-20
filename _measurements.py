@@ -14,7 +14,7 @@ class Measurements:
         self.returns = returns
 
     def cumulative_return(self, rets, timeframe: str = "Y"):
-        annual_returns = (1 + rets).resample(timeframe).prod() - 1
+        annual_returns = rets.resample(timeframe).mean()
         cumulative_returns = (annual_returns + 1).cumprod() - 1
         return cumulative_returns
 
@@ -98,7 +98,7 @@ class Measurements:
 
         else:
             raise TypeError("self.rets should be pandas dataframe!")
-        
+
     def portfolio_returns(self, rets, weights: pd.DataFrame) -> pd.DataFrame:
         if isinstance(rets, pd.DataFrame):
             idx = rets.index
@@ -107,6 +107,10 @@ class Measurements:
             rets.columns = ["Portfolio_returns"]
             rets.index = idx
             return rets
+        
+    def ENC(self, weights: pd.DataFrame) -> float:
+        enc = np.sum(weights**2)
+        return 1/enc
 
     def analyze(self, rets, weights: pd.DataFrame) -> pd.DataFrame:
         if isinstance(rets, pd.DataFrame):
@@ -121,7 +125,7 @@ class Measurements:
             statistics = {
                 "cum_return": [self.last_return(rets)],
                 "max_drawdown": [self.max_drawdown(rets)],
-                "volatility": [self.volatility(rets, 1)],
+                "volatility": [self.volatility(rets, freq=1)],
                 "sharpe_ratio": [self.sharpe_ratio(rets, freq=1)],
                 "sortino_ratio": [self.sortino_ratio(rets)],
                 "kurtosis": [self.kurtosis(rets)],
@@ -131,9 +135,14 @@ class Measurements:
                 "var_gauss": [self.gaussian_VaR(rets)],
                 "cvar_gauss": [self.CVaR(rets, self.gaussian_VaR(rets))],
                 "var_nongauss": [self.nongaussian_VaR(rets)],
-                "cvar_nongauss": [self.CVaR(rets, self.nongaussian_VaR(rets))]}
+                "cvar_nongauss": [self.CVaR(rets, self.nongaussian_VaR(rets))],
+                "ENC": [self.ENC(weights=weights)]
+            }
 
             return statistics
 
         else:
             raise TypeError("self.rets should be pandas dataframe!")
+
+    def plot_weights(self, rets: pd.DataFrame, weights: pd.DataFrame):
+        pass

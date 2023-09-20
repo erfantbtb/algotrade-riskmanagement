@@ -60,6 +60,9 @@ class Portfolio:
         except:
             raise ValueError("Method that you want is not available!")
 
+    def black_litterman_stats(self, ):
+        pass
+
     def _negative_sharpe_ratio(self, weights: Union[pd.DataFrame, np.ndarray]) -> float:
         """negative of Sharpe ratio as objective function
 
@@ -86,7 +89,7 @@ class Portfolio:
         """
         return -np.sum(weights * self.expected_returns)
 
-    def _portfolio_volatility(self, weights, r_bar = None) -> float:
+    def _portfolio_volatility(self, weights, r_bar=None) -> float:
         """Volatility of portfolio as objective function
 
         Args:
@@ -104,6 +107,16 @@ class Portfolio:
             np.dot(weights.T, np.dot(self.cov_matrix, weights)))
         utility = (mean - self.risk_free_rate) - gamma * volatility
         return -utility
+
+    def _portfolio_parity(self, weights) -> float:
+        portfolio_variance = np.dot(
+            weights.T, np.dot(self.cov_matrix, weights))
+        asset_contributions = weights * \
+            np.dot(self.cov_matrix, weights) / portfolio_variance
+        target_risk_contributions = np.ones(len(weights)) / len(weights)
+        rc_diff = risk_contributions(
+            weights, cov_matrix) - target_risk_contributions
+        return np.sum(rc_diff**2)
 
     def optimize_portfolio(self, objective: str) -> pd.DataFrame:
         """Optimize portfolio based on objective that you want
@@ -145,12 +158,20 @@ class Portfolio:
                               method='SLSQP',
                               bounds=self.bounds,
                               constraints=self.constraints)
+
+        elif objective == "risk_parity":
+            result = minimize(self._portfolio_parity,
+                              self.initial_weights,
+                              method='SLSQP',
+                              bounds=self.bounds,
+                              constraints=self.constraints)
         else:
             raise ValueError(
                 "Invalid objective. Supported objectives are 'min_risk', 'max_sharpe', and 'max_return'.")
 
-        optimized_weights = pd.Series(
-            result.x, index=self.expected_returns.index, name='Weights')
+        optimized_weights = pd.Series(result.x,
+                                      index=self.expected_returns.index,
+                                      name='Weights')
         optimized_return = np.sum(result.x * self.expected_returns)
         optimized_volatility = np.sqrt(
             np.dot(result.x.T, np.dot(self.cov_matrix, result.x)))

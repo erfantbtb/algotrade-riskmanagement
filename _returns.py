@@ -205,10 +205,10 @@ class ExpectedReturns:
 
         else:
             raise TypeError("The argument rets cannot be numpy array")
-        
-    def CAPM(self, 
+
+    def CAPM(self,
              rets: Union[pd.DataFrame, pd.Series],
-             market_returns: pd.DataFrame, 
+             market_returns: pd.DataFrame,
              rf: float = 0.0,
              fit_intercept: bool = False) -> pd.DataFrame:
         """Single factor model CAPM
@@ -228,20 +228,20 @@ class ExpectedReturns:
         if isinstance(rets, pd.DataFrame):
             rets = rets - rf
             return rets.aggregate(self.CAPM, market_returns, rf, fit_intercept)
-        
+
         elif isinstance(rets, pd.Series):
             lr = LinearRegression(fit_intercept=fit_intercept)
             lr.fit(market_returns, rets)
-            beta = lr.coef_ 
+            beta = lr.coef_
             expected_returns = (beta * market_returns).mean()
-            return expected_returns 
-        
-        else: 
+            return expected_returns
+
+        else:
             raise TypeError("rets should be either pd.DataFrame or pd.Series")
-        
-    def multi_factor(self, 
+
+    def multi_factor(self,
                      rets: Union[pd.DataFrame, pd.Series],
-                     factors: pd.DataFrame, 
+                     factors: pd.DataFrame,
                      fit_intercept: bool = False,
                      rf: float = 0.0) -> pd.DataFrame:
         """Multi factor models using simple linear regression
@@ -261,23 +261,23 @@ class ExpectedReturns:
         if isinstance(rets, pd.DataFrame):
             rets = rets - rf
             return rets.aggregate(self.CAPM, factors, fit_intercept, rf)
-        
+
         elif isinstance(rets, pd.Series):
             lr = LinearRegression(fit_intercept=fit_intercept)
             lr.fit(factors, rets)
-            beta = lr.coef_ 
+            beta = lr.coef_
             expected_returns = (beta * factors).mean()
-            return expected_returns 
-        
-        else: 
+            return expected_returns
+
+        else:
             raise TypeError("rets should be either pd.DataFrame or pd.Series")
-        
-    def multi_factor_regularize(self, 
-                     rets: Union[pd.DataFrame, pd.Series],
-                     factors: pd.DataFrame, 
-                     fit_intercept: bool = False,
-                     rf: float = 0.0, 
-                     method: str = "lasso") -> pd.DataFrame:
+
+    def multi_factor_regularize(self,
+                                rets: Union[pd.DataFrame, pd.Series],
+                                factors: pd.DataFrame,
+                                fit_intercept: bool = False,
+                                rf: float = 0.0,
+                                method: str = "lasso") -> pd.DataFrame:
         """Multi factor models using lasso and ridge!
 
         Args:
@@ -296,22 +296,21 @@ class ExpectedReturns:
         if isinstance(rets, pd.DataFrame):
             rets = rets - rf
             return rets.aggregate(self.CAPM, factors, fit_intercept, rf, method)
-        
+
         elif isinstance(rets, pd.Series):
             if method == "lasso":
                 lr = LassoCV(cv=5, fit_intercept=fit_intercept)
-                
+
             elif method == "ridge":
                 lr = RidgeCV(cv=5, fit_intercept=fit_intercept)
-                
+
             else:
                 raise ValueError("Only possible methods are lasso and ridge")
-                
+
             lr.fit(factors, rets)
-            beta = lr.coef_ 
+            beta = lr.coef_
             expected_returns = (beta * factors).mean()
-            return expected_returns 
-        
-        else: 
+            return expected_returns
+
+        else:
             raise TypeError("rets should be either pd.DataFrame or pd.Series")
-         
