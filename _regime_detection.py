@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd 
 import cvxpy as cp 
 from typing import Union   
-from scipy.optimize import minimize
 import matplotlib.pyplot as plt 
+import keras as ks 
+from sklearn.base import BaseEstimator 
 
 
 class RegimeDetection:
@@ -13,6 +14,19 @@ class RegimeDetection:
     def trend_filtering(self,
                         rets: Union[pd.DataFrame, pd.Series], 
                         lambda_value: float) -> Union[pd.DataFrame, pd.Series]:
+        """ This module filters trends of a series or dataframe. what it really do is that it 
+            smooths serie or dataframe that is given to it.  
+
+        Args:
+            rets (Union[pd.DataFrame, pd.Series]): Serie or dataframe that needs to be smoothed. 
+            lambda_value (float): penalty value or value for smoothing. 
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            Union[pd.DataFrame, pd.Series]: Smooth value serie or dataframe 
+        """
         if isinstance(rets, pd.DataFrame):
             return rets.agg(self.trend_filtering, lambda_value=lambda_value)
         
@@ -42,7 +56,19 @@ class RegimeDetection:
     
     def regime_switch(self, 
                       betas: Union[pd.DataFrame, pd.Series],
-                      threshold: float = 1e-5):
+                      threshold: float = 1e-5) -> list:
+        """ This function calculates indexes of where trend is switched.
+
+        Args:
+            betas (Union[pd.DataFrame, pd.Series]): Smooth values for returns! (not price)
+            threshold (float, optional): Threshold that checks if trend is changes or not. Defaults to 1e-5.
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            list: indexes that trends are changed
+        """
         if isinstance(betas, pd.DataFrame):
             return betas.agg(self.regime_switch, threshold=threshold)
         
@@ -60,7 +86,22 @@ class RegimeDetection:
         else: 
             raise TypeError("rets should be either pd.DataFrame or pd.Series!")
         
-    def regime_switch_series(self, betas, threshold=1e-5):
+    def regime_switch_series(self, 
+                             betas: Union[pd.Series, pd.DataFrame], 
+                             threshold: float = 1e-5) -> Union[pd.Series, pd.DataFrame]:
+        """ This function calculates trends by giving them 1 and -1 in order to define 
+            bullish trend and bearish trend
+
+        Args:
+            betas (Union[pd.Series, pd.DataFrame]): Smooth value of returns
+            threshold (float, optional): _description_. Defaults to 1e-5.
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            Union[pd.Series, pd.DataFrame]: return dataframe or series of trends 
+        """
         if isinstance(betas, pd.DataFrame):
             return betas.agg(self.regime_switch_series, threshold=threshold)
         
@@ -76,30 +117,4 @@ class RegimeDetection:
         
         else: 
             raise TypeError("rets should be either pd.DataFrame or pd.Series!")
-        
-    def simulate_returns(self,
-                         mu1: pd.DataFrame, 
-                         mu2: pd.DataFrame,
-                         cov1: pd.DataFrame, 
-                         cov2: pd.DataFrame, 
-                         p11: pd.DataFrame,
-                         p22: pd.DataFrame,
-                         n: int) -> pd.DataFrame:
-        s_1 = np.random.multivariate_normal(mu1, cov1, n).T
-        s_2 = np.random.multivariate_normal(mu2, cov2, n).T
-        regime = np.ones(n)
-        for i in range(n-1):
-            if regime[i] == 1:
-                if np.random.rand() <= p11:
-                    regime[i+1] = 1
-                else:
-                    regime[i+1] = 2
-            else:
-                if np.random.rand() <= p22:
-                    regime[i+1] = 2
-                else:
-                    regime[i+1] = 1
-        return (regime*s_1 + (1-regime)*s_2).T
-            
-        
         

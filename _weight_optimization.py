@@ -56,9 +56,48 @@ class Portfolio:
         try:
             self.expected_returns = self.methods_mu_dict[method_mu](self.rets)
             self.cov_matrix = self.methods_cov_dict[method_cov](self.rets)
+            
+            return self.expected_returns, self.cov_matrix
 
         except:
-            raise ValueError("Method that you want is not available!")
+            raise NotImplementedError("Method that you want is not available yet!")
+        
+    def scenario_based_stats(self,
+                             mu_bullish: pd.DataFrame, 
+                             mu_bearish: pd.DataFrame, 
+                             cov_bullish: pd.DataFrame, 
+                             cov_bearish: pd.DataFrame, 
+                             transition_matrix: np.ndarray):
+        """This function is used when we want to have scenario based portfolio optimization
+            and for now it uses 2 scenarios 1 is bullish and other one is bearish.
+
+        Args:
+            mu_bullish (pd.DataFrame): _description_
+            mu_bearish (pd.DataFrame): _description_
+            cov_bullish (pd.DataFrame): _description_
+            cov_bearish (pd.DataFrame): _description_
+            transition_matrix (np.ndarray): _description_
+
+        Raises:
+            TypeError: _description_
+            ValueError: _description_
+
+        Returns:
+            _type_: _description_
+        """
+        try: 
+            self.expected_returns = transition_matrix[0] * mu_bullish + transition_matrix[1] * mu_bearish
+            self.cov_matrix = transition_matrix[0] * cov_bullish + transition_matrix[1] * cov_bearish
+            
+            return self.expected_returns, self.cov_matrix
+        
+        except:
+            if not isinstance(transition_matrix, np.ndarray):
+                raise TypeError("Transition matrix should be numpy array")
+            
+            elif transition_matrix.shape != (1, 2):
+                raise ValueError("Shape of transition matrix should be (1, 2)") 
+                
 
     def black_litterman_stats(self, ):
         pass
@@ -115,7 +154,7 @@ class Portfolio:
             np.dot(self.cov_matrix, weights) / portfolio_variance
         target_risk_contributions = np.ones(len(weights)) / len(weights)
         rc_diff = risk_contributions(
-            weights, cov_matrix) - target_risk_contributions
+            weights, self.cov_matrix) - target_risk_contributions
         return np.sum(rc_diff**2)
 
     def optimize_portfolio(self, objective: str) -> pd.DataFrame:
