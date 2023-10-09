@@ -109,7 +109,7 @@ class RegimeDetection:
             n = len(betas)
             save = np.zeros(n)
             for i in range(n):
-                if (betas[i]>threshold):
+                if (betas.iloc[i]>threshold):
                     save[i] = 1
                 else:
                     save[i] = -1
