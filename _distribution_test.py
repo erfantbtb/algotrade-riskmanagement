@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats as st
 import warnings
+from typing import Union
 warnings.filterwarnings("ignore")
 
 
@@ -10,7 +11,7 @@ class DistributionTest:
         self.rets = returns
         self.level = level
 
-    def normal_test(self, rets: pd.DataFrame) -> bool:
+    def normal_test(self, rets: Union[pd.DataFrame, pd.Series]) -> bool:
         if isinstance(rets, pd.DataFrame):
             return rets.aggregate(self.normal_test)
 
@@ -22,7 +23,7 @@ class DistributionTest:
 
         return p_val > self.level
 
-    def lognormal_test(self, rets: pd.DataFrame) -> bool:
+    def lognormal_test(self, rets: Union[pd.DataFrame, pd.Series]) -> bool:
         if isinstance(rets, pd.DataFrame):
             return rets.aggregate(self.lognormal_test)
 
@@ -37,7 +38,7 @@ class DistributionTest:
 
         return p_val > self.level
 
-    def student_test(self, rets: pd.DataFrame) -> bool:
+    def student_test(self, rets: Union[pd.DataFrame, pd.Series]) -> bool:
         if isinstance(rets, pd.DataFrame):
             return rets.aggregate(self.student_test)
 
@@ -49,7 +50,7 @@ class DistributionTest:
 
         return p_val > self.level
 
-    def pareto_test(self, rets: pd.DataFrame) -> bool:
+    def pareto_test(self, rets: Union[pd.DataFrame, pd.Series]) -> bool:
         if isinstance(rets, pd.DataFrame):
             return rets.aggregate(self.pareto_test)
 
@@ -63,7 +64,7 @@ class DistributionTest:
 
         return p_val > self.level
 
-    def loggamma_test(self, rets: pd.DataFrame) -> bool:
+    def loggamma_test(self, rets: Union[pd.DataFrame, pd.Series]) -> bool:
         if isinstance(rets, pd.DataFrame):
             return rets.aggregate(self.pareto_test)
 

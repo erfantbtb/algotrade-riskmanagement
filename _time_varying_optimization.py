@@ -87,21 +87,28 @@ class RollingTimeOptimization:
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         for train_int in range(self.train_low, self.train_high + 1, self.step):
             for test_int in range(self.test_low, self.test_high + 1, self.step):
+                print(
+                    f"Starting portfolio management system for {train_int} and {test_int}")
                 self.train_loop(self.rets,
                                 self.method_mu,
                                 self.method_cov,
                                 self.objective,
                                 train_int,
                                 test_int)
-
+                print("Calculating and analyzing perforemance of system")
                 st = pd.DataFrame(Measurements(
                     self.rets_opt).analyze(self.rets_opt, 1))
                 st_eq = pd.DataFrame(Measurements(
                     self.rets_eq).analyze(self.rets_eq, 2))
-                df = pd.concat([st, st_eq])
+
+                df = pd.concat([st, st_eq], axis=1).T
                 df.index = ["optimzied_portfolio", "equal_portfolio"]
-                df = np.round(df.T, 4)
+                df = np.round(df.T, 3)
                 self.results.append(df)
+                print("--------------------------------")
+
+                self.rets_opt = pd.DataFrame()
+                self.rets_eq = pd.DataFrame()
 
         return self.results
 
@@ -218,34 +225,37 @@ class RegimeTimeOptimization:
         self.rets_opt = pd.DataFrame()
         self.rets_eq = pd.DataFrame()
         self.results = []
-        
+
     def one_epoch(self,
-                  rets: pd.DataFrame, 
+                  rets: pd.DataFrame,
                   bullish_rets: pd.DataFrame,
                   bearish_rets: pd.DataFrame,
                   method_mu: str,
                   method_cov: str,
-                  objective: str, 
-                  transition_matrix: np.ndarray, 
+                  objective: str,
+                  transition_matrix: np.ndarray,
                   num_samples: int = 5000) -> pd.DataFrame:
         # simulate bullish returns
         portfo_bull = Portfolio(bullish_rets)
         mu_bull, cov_bull = portfo_bull.portfolio_stats(method_mu, method_cov)
-        bullish_rets_simulated = np.random.multivariate_normal(mu_bull, cov_bull, num_samples)
-        
+        bullish_rets_simulated = np.random.multivariate_normal(
+            mu_bull, cov_bull, num_samples)
+
         # simulate bearish returns
         portfo_bear = Portfolio(bearish_rets)
         mu_bear, cov_bear = portfo_bear.portfolio_stats(method_mu, method_cov)
-        bearish_rets_simulated = np.random.multivariate_normal(mu_bear, cov_bear, num_samples)
-        
+        bearish_rets_simulated = np.random.multivariate_normal(
+            mu_bear, cov_bear, num_samples)
+
         # calculate mean and covariance matrix of simulated returns
         mu1, cov1 = bullish_rets_simulated.mean(), bullish_rets_simulated.cov()
         mu2, cov2 = bearish_rets_simulated.mean(), bearish_rets_simulated.cov()
-        
-        # creat portfolio using simulated means and covariances 
+
+        # creat portfolio using simulated means and covariances
         org_portfolio = Portfolio(rets)
-        org_portfolio.scenario_based_stats(mu1, mu2, cov1, cov2, transition_matrix)
-        
+        org_portfolio.scenario_based_stats(
+            mu1, mu2, cov1, cov2, transition_matrix)
+
         w = org_portfolio.optimize_portfolio(objective=objective)
         w_eq = pd.Series(np.ones(len(rets.columns)) /
                          len(rets.columns), index=rets.columns)
@@ -255,8 +265,3 @@ class RegimeTimeOptimization:
 
         self.rets_opt = pd.concat([rets_opt, rets_opt], ignore_index=True)
         self.rets_eq = pd.concat([rets_eq, rets_eq], ignore_index=True)
-        
-        
-        
-        
-        
