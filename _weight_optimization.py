@@ -4,6 +4,7 @@ import cvxpy as cv
 from scipy.optimize import minimize
 from _risk import *
 from _returns import *
+from typing import List
 
 
 class Portfolio:
@@ -117,22 +118,24 @@ class Portfolio:
         sharpe_ratio = (mean - self.risk_free_rate) / volatility
         return -sharpe_ratio
 
-    def _negative_return(self, weights) -> float:
+    def _negative_return(self, weights: Union[pd.DataFrame, np.ndarray]) -> float:
         """negative of expected return as objective function
 
         Args:
-            weights (_type_): _description_
+            weights (: Union[pd.DataFrame, np.ndarray]): _description_
 
         Returns:
             float: _description_
         """
         return -np.sum(weights * self.expected_returns)
 
-    def _portfolio_volatility(self, weights, r_bar=None) -> float:
+    def _portfolio_volatility(self, 
+                              weights: Union[pd.DataFrame, np.ndarray],
+                              r_bar=None) -> float:
         """Volatility of portfolio as objective function
 
         Args:
-            weights (_type_): _description_
+            weights (: Union[pd.DataFrame, np.ndarray]): _description_
 
         Returns:
             float: _description_
@@ -140,36 +143,63 @@ class Portfolio:
         if r_bar == None:
             return np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
 
-    def _portfolio_utility(self, weights, gamma: float = 0.01) -> float:
+    def _portfolio_utility(self, 
+                           weights: Union[pd.DataFrame, np.ndarray], 
+                           gamma: float = 0.01) -> float:
+        """ This objective is simillar to sharpe ratio but instead of dividing it substracts 
+            expected return and risk with coefficient of gamma
+
+        Args:
+            weights (Union[pd.DataFrame, np.ndarray]): _description_
+            gamma (float, optional): _description_. Defaults to 0.01.
+
+        Returns:
+            float: _description_
+        """
         mean = np.sum(weights * self.expected_returns)
         volatility = np.sqrt(
             np.dot(weights.T, np.dot(self.cov_matrix, weights)))
         utility = (mean - self.risk_free_rate) - gamma * volatility
         return -utility
 
-    def _portfolio_parity(self, weights) -> float:
+    def _portfolio_parity(self, weights: Union[pd.DataFrame, np.ndarray]) -> float:
+        """ This objective function is simillar to GMV objective but instead of minimizing risk 
+            based on money it minimizes based on the risk itself and risk of each asset will be 
+            same as other one! 
+
+        Args:
+            weights (Union[pd.DataFrame, np.ndarray]): _description_
+
+        Returns:
+            float: _description_
+        """
         portfolio_variance = np.dot(
             weights.T, np.dot(self.cov_matrix, weights))
         asset_contributions = weights * \
             np.dot(self.cov_matrix, weights) / portfolio_variance
         target_risk_contributions = np.ones(len(weights)) / len(weights)
-        rc_diff = risk_contributions(
-            weights, self.cov_matrix) - target_risk_contributions
+        rc_diff = asset_contributions - target_risk_contributions
         return np.sum(rc_diff**2)
 
-    def optimize_portfolio(self, objective: str) -> pd.DataFrame:
+    def optimize_portfolio(self, 
+                           objective: str, 
+                           custom_constraints: List[dict] = None) -> pd.DataFrame:
         """Optimize portfolio based on objective that you want
 
         Args:
-            objective (str): _description_
+            objective (str): objective of your porfolio
+            custom_constraints (List[dict], optional): constraints that you want to put on weights. Defaults to None.
 
         Raises:
             ValueError: _description_
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame: optimized weight of each asset in dataframe.
         """
-
+        if custom_constraints != None:
+            for constraints in custom_constraints:
+                self.constraints.append(constraints)
+            
         if objective == 'min_risk':
             result = minimize(self._portfolio_volatility,
                               self.initial_weights,
@@ -205,8 +235,8 @@ class Portfolio:
                               bounds=self.bounds,
                               constraints=self.constraints)
         else:
-            raise ValueError(
-                "Invalid objective. Supported objectives are 'min_risk', 'max_sharpe', and 'max_return'.")
+            objective_list = ['min_risk', 'max_sharpe',  'max_return', 'risk_parity', 'max_utility']
+            raise ValueError(f"Invalid objective. Supported objectives are: {objective_list} .")
 
         optimized_weights = pd.Series(result.x,
                                       index=self.expected_returns.index,

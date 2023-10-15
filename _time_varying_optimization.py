@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from _estimation_test import *
+from _method_test import *
 from _measurements import *
 from _weight_optimization import *
 from _regime_detection import *

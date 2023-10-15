@@ -382,4 +382,4 @@ class Measurements:
             return statistics_df.T
 
         else:
-            raise TypeError("self.rets should be pandas dataframe!")
+            raise TypeError("self.rets should be pandas dataframe or dataseries!")
