@@ -5,6 +5,7 @@ from _measurements import *
 from _weight_optimization import *
 from _regime_detection import *
 from typing import Any, Union
+from tqdm.notebook import tqdm, trange
 
 
 class RollingTimeOptimization:
@@ -85,17 +86,21 @@ class RollingTimeOptimization:
                            objective=objective)
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        for train_int in range(self.train_low, self.train_high + 1, self.step):
+        pbar = tqdm(total=len(range(self.test_low, self.test_high + 1, self.step)),
+                    desc=f"Test Search Space for {self.method_mu} and {self.method_cov}",
+                    leave=False)
+
+        for train_int in tqdm(range(self.train_low, self.train_high + 1, self.step), desc=f"Test Search Space for {self.method_mu} and {self.method_cov}"):
             for test_int in range(self.test_low, self.test_high + 1, self.step):
-                print(
-                    f"Starting portfolio management system for {train_int} and {test_int}")
+                pbar.update(1)
+
                 self.train_loop(self.rets,
                                 self.method_mu,
                                 self.method_cov,
                                 self.objective,
                                 train_int,
                                 test_int)
-                print("Calculating and analyzing perforemance of system")
+
                 st = pd.DataFrame(Measurements(
                     self.rets_opt).analyze(self.rets_opt, 1))
                 st_eq = pd.DataFrame(Measurements(
@@ -105,10 +110,11 @@ class RollingTimeOptimization:
                 df.index = ["optimzied_portfolio", "equal_portfolio"]
                 df = np.round(df.T, 3)
                 self.results.append(df)
-                print("--------------------------------")
 
                 self.rets_opt = pd.DataFrame()
                 self.rets_eq = pd.DataFrame()
+            pbar.reset()
+            # pbar.close()
 
         return self.results
 
