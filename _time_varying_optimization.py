@@ -5,11 +5,7 @@ from _measurements import *
 from _weight_optimization import *
 from _regime_detection import *
 from typing import Any, Union
-<<<<<<< HEAD
-from tqdm.notebook import tqdm, trange
-=======
 from tqdm import tqdm, trange
->>>>>>> ecd4e6580a83c60a84e84bc794b7e34bb3ac99ab
 
 
 class RollingTimeOptimization:
@@ -90,37 +86,20 @@ class RollingTimeOptimization:
                            objective=objective)
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-<<<<<<< HEAD
         pbar = tqdm(total=len(range(self.test_low, self.test_high + 1, self.step)),
-                    desc=f"Test Search Space for {self.method_mu} and {self.method_cov}",
+                    desc=f"Test Search Space for {self.method_mu} and {self.method_cov} and {self.objective}",
                     leave=False)
 
-        for train_int in tqdm(range(self.train_low, self.train_high + 1, self.step), desc=f"Test Search Space for {self.method_mu} and {self.method_cov}"):
+        for train_int in tqdm(range(self.train_low, self.train_high + 1, self.step), desc=f"Train Search Space for {self.method_mu} and {self.method_cov} and {self.objective}"):
             for test_int in range(self.test_low, self.test_high + 1, self.step):
                 pbar.update(1)
 
-=======
-        train_range = range(self.train_low, self.train_high + 1, self.step)
-        test_range = range(self.test_low, self.test_high + 1, self.step)
-        
-        pbar_train = tqdm(total=len(train_range), leave=False)
-        
-        for train_int in train_range:
-            pbar_train.set_description(desc=f"Train Search Space: train interval = {train_int}")
-            pbar_train.update()
-            
-            for test_int in test_range:             
->>>>>>> ecd4e6580a83c60a84e84bc794b7e34bb3ac99ab
                 self.train_loop(self.rets,
                                 self.method_mu,
                                 self.method_cov,
                                 self.objective,
                                 train_int,
                                 test_int)
-<<<<<<< HEAD
-
-=======
->>>>>>> ecd4e6580a83c60a84e84bc794b7e34bb3ac99ab
                 st = pd.DataFrame(Measurements(
                     self.rets_opt).analyze(self.rets_opt, 1))
                 st_eq = pd.DataFrame(Measurements(
@@ -133,15 +112,10 @@ class RollingTimeOptimization:
 
                 self.rets_opt = pd.DataFrame()
                 self.rets_eq = pd.DataFrame()
-<<<<<<< HEAD
+                
             pbar.reset()
             # pbar.close()
 
-=======
-            
-        pbar_train.close()
-        
->>>>>>> ecd4e6580a83c60a84e84bc794b7e34bb3ac99ab
         return self.results
 
 
