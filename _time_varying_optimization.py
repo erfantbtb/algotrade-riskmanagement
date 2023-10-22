@@ -112,7 +112,7 @@ class RollingTimeOptimization:
 
                 self.rets_opt = pd.DataFrame()
                 self.rets_eq = pd.DataFrame()
-                
+
             pbar.reset()
             # pbar.close()
 
@@ -197,7 +197,12 @@ class ExpandingTimeOptimization:
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         train_int = self.start
+        pbar = tqdm(total=len(range(self.test_low, self.test_high + 1, self.step)),
+                    desc=f"Test Search Space for {self.method_mu} and {self.method_cov} and {self.objective}",
+                    leave=False)
+
         for test_int in range(self.test_low, self.test_high + 1, self.step):
+            pbar.update(1)
             self.train_loop(self.rets,
                             self.method_mu,
                             self.method_cov,
@@ -213,6 +218,8 @@ class ExpandingTimeOptimization:
             df.index = ["optimzied_portfolio", "equal_portfolio"]
             df = np.round(df.T, 4)
             self.results.append(df)
+
+        pbar.close()
 
         return self.results
 

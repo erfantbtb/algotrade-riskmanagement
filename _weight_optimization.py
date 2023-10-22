@@ -57,48 +57,51 @@ class Portfolio:
         try:
             self.expected_returns = self.methods_mu_dict[method_mu](self.rets)
             self.cov_matrix = self.methods_cov_dict[method_cov](self.rets)
-            
+
             return self.expected_returns, self.cov_matrix
 
         except:
-            raise NotImplementedError("Method that you want is not available yet!")
-        
+            raise NotImplementedError(
+                "Method that you want is not available yet!")
+
     def scenario_based_stats(self,
-                             mu_bullish: pd.DataFrame, 
-                             mu_bearish: pd.DataFrame, 
-                             cov_bullish: pd.DataFrame, 
-                             cov_bearish: pd.DataFrame, 
-                             transition_matrix: np.ndarray):
+                             mu_bullish: pd.DataFrame,
+                             mu_bearish: pd.DataFrame,
+                             cov_bullish: pd.DataFrame,
+                             cov_bearish: pd.DataFrame,
+                             transition_matrix: np.ndarray = np.array([[0.5], [0.5]])) -> None:
         """This function is used when we want to have scenario based portfolio optimization
             and for now it uses 2 scenarios 1 is bullish and other one is bearish.
 
         Args:
-            mu_bullish (pd.DataFrame): _description_
-            mu_bearish (pd.DataFrame): _description_
-            cov_bullish (pd.DataFrame): _description_
-            cov_bearish (pd.DataFrame): _description_
-            transition_matrix (np.ndarray): _description_
+            mu_bullish (pd.DataFrame): Expected return for bullish market
+            mu_bearish (pd.DataFrame): Expected return for bearish market
+            cov_bullish (pd.DataFrame): Covariance matrix for bullish market
+            cov_bearish (pd.DataFrame): Covariance matrix for bearish market
+            transition_matrix (np.ndarray, optional): Probability of each regime with shape of (1, 2).
+                                                      np.array([[0.5], [0.5]])
 
         Raises:
             TypeError: _description_
             ValueError: _description_
 
         Returns:
-            _type_: _description_
+            None
         """
-        try: 
-            self.expected_returns = transition_matrix[0] * mu_bullish + transition_matrix[1] * mu_bearish
-            self.cov_matrix = transition_matrix[0] * cov_bullish + transition_matrix[1] * cov_bearish
-            
+        try:
+            self.expected_returns = transition_matrix[0] * \
+                mu_bullish + transition_matrix[1] * mu_bearish
+            self.cov_matrix = transition_matrix[0] * \
+                cov_bullish + transition_matrix[1] * cov_bearish
+
             return self.expected_returns, self.cov_matrix
-        
+
         except:
             if not isinstance(transition_matrix, np.ndarray):
-                raise TypeError("Transition matrix should be numpy array")
-            
+                raise TypeError("Transition matrix should be numpy array.")
+
             elif transition_matrix.shape != (1, 2):
-                raise ValueError("Shape of transition matrix should be (1, 2)") 
-                
+                raise ValueError("Shape of transition matrix should be (1, 2)")
 
     def black_litterman_stats(self, ):
         pass
@@ -129,7 +132,7 @@ class Portfolio:
         """
         return -np.sum(weights * self.expected_returns)
 
-    def _portfolio_volatility(self, 
+    def _portfolio_volatility(self,
                               weights: Union[pd.DataFrame, np.ndarray],
                               r_bar=None) -> float:
         """Volatility of portfolio as objective function
@@ -143,8 +146,8 @@ class Portfolio:
         if r_bar == None:
             return np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
 
-    def _portfolio_utility(self, 
-                           weights: Union[pd.DataFrame, np.ndarray], 
+    def _portfolio_utility(self,
+                           weights: Union[pd.DataFrame, np.ndarray],
                            gamma: float = 0.01) -> float:
         """ This objective is simillar to sharpe ratio but instead of dividing it substracts 
             expected return and risk with coefficient of gamma
@@ -181,8 +184,8 @@ class Portfolio:
         rc_diff = asset_contributions - target_risk_contributions
         return np.sum(rc_diff**2)
 
-    def optimize_portfolio(self, 
-                           objective: str, 
+    def optimize_portfolio(self,
+                           objective: str,
                            custom_constraints: List[dict] = None) -> pd.DataFrame:
         """Optimize portfolio based on objective that you want
 
@@ -199,7 +202,7 @@ class Portfolio:
         if custom_constraints != None:
             for constraints in custom_constraints:
                 self.constraints.append(constraints)
-            
+
         if objective == 'min_risk':
             result = minimize(self._portfolio_volatility,
                               self.initial_weights,
@@ -235,8 +238,10 @@ class Portfolio:
                               bounds=self.bounds,
                               constraints=self.constraints)
         else:
-            objective_list = ['min_risk', 'max_sharpe',  'max_return', 'risk_parity', 'max_utility']
-            raise ValueError(f"Invalid objective. Supported objectives are: {objective_list} .")
+            objective_list = ['min_risk', 'max_sharpe',
+                              'max_return', 'risk_parity', 'max_utility']
+            raise ValueError(
+                f"Invalid objective. Supported objectives are: {objective_list} .")
 
         optimized_weights = pd.Series(result.x,
                                       index=self.expected_returns.index,
