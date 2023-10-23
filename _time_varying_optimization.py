@@ -214,10 +214,14 @@ class ExpandingTimeOptimization:
                 self.rets_opt).analyze(self.rets_opt, 1))
             st_eq = pd.DataFrame(Measurements(
                 self.rets_eq).analyze(self.rets_eq, 2))
-            df = pd.concat([st, st_eq])
+            df = pd.concat([st, st_eq], axis=1).T
             df.index = ["optimzied_portfolio", "equal_portfolio"]
-            df = np.round(df.T, 4)
+            df = np.round(df.T, 3)
             self.results.append(df)
+            
+            self.rets_opt = pd.DataFrame()
+            self.rets_eq = pd.DataFrame()
+
 
         pbar.close()
 
