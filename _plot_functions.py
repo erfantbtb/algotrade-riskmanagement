@@ -126,8 +126,8 @@ class Plotting:
         plt.pie(weights,
                 labels=labels,
                 autopct='%1.1f%%',
-                pctdistance=1.25, 
-                labeldistance=.6)
+                pctdistance=1.13, 
+                labeldistance=.4)
         plt.title("Weights Pie Chart")
         plt.show()
         

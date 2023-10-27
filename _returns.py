@@ -9,6 +9,7 @@ from sklearn.covariance import OAS
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import RidgeCV, LassoCV
 from sklearn.model_selection import cross_validate
+import statsmodels.api as sm
 
 
 class ExpectedReturns:
@@ -227,6 +228,7 @@ class ExpectedReturns:
         """
         if isinstance(rets, pd.DataFrame):
             rets = rets - rf
+            market_returns = market_returns - rf 
             return rets.aggregate(self.CAPM, market_returns, rf, fit_intercept)
 
         elif isinstance(rets, pd.Series):
