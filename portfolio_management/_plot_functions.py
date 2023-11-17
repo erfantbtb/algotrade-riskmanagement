@@ -133,8 +133,8 @@ class Plotting:
         plt.show()
         
     def plot_cum_return(self, 
-                        portfolio: bool, 
-                        weights: pd.DataFrame = None):
+                        rets: Union[pd.DataFrame, pd.Series], 
+                        ):
        pass
             
         

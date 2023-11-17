@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import cvxpy as cv
 from scipy.optimize import minimize
-from _risk import *
-from _returns import *
+from portfolio_management._risk import *
+from portfolio_management._returns import *
 from typing import List
 
 

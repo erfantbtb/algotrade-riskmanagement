@@ -1,7 +1,7 @@
 import numpy as np 
 import pandas as pd 
-from _measurements import * 
-from _weight_optimization import * 
+from portfolio_management._measurements import * 
+from portfolio_management._weight_optimization import * 
 import matplotlib.pyplot as plt 
 import seaborn as sns 
 from typing import Union
@@ -47,6 +47,7 @@ class Plotting:
         max_sharpe_return = results[0, max_sharpe_idx]
         max_sharpe_std_dev = results[1, max_sharpe_idx]
         
+        # Equally weighted portfolio
         equal_weights = np.ones(num_stocks) / num_stocks
         equal_return = np.dot(equal_weights, mean_returns)
         equal_std_dev = np.sqrt(np.dot(equal_weights.T, np.dot(cov_matrix, equal_weights)))
@@ -130,4 +131,10 @@ class Plotting:
                 labeldistance=.4)
         plt.title("Weights Pie Chart")
         plt.show()
+        
+    def plot_cum_return(self, 
+                        rets: Union[pd.DataFrame, pd.Series], 
+                        ):
+       pass
+            
         

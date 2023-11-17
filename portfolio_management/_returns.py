@@ -76,7 +76,7 @@ class ExpectedReturns:
             raise TypeError("The argument rets cannot be numpy array")
 
     def james_stein_return(self,
-                           rets: Union[pd.DataFrame, pd.Series]):
+                           rets: Union[pd.DataFrame, pd.Series]) -> pd.DataFrame:
         """Estimate expected return using james stein estimator
 
         Args:

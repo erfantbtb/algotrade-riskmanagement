@@ -4,7 +4,8 @@ import scipy.stats as st
 from statsmodels.tsa.stattools import adfuller
 import warnings
 from typing import Union
-from _distribution_test import *
+import portfolio_management 
+from portfolio_management import _distribution_test
 warnings.filterwarnings("ignore")
 
 
@@ -69,7 +70,7 @@ class CheckData:
         Returns:
             pd.DataFrame: _description_
         """
-        cond = DistributionTest(rets, level=level).normal_test(rets)
+        cond = _distribution_test.DistributionTest(rets, level=level).normal_test(rets)
         return cond
 
     def check_consistency(self, rets: Union[pd.DataFrame, pd.Series], threshold: float = 0.2) -> pd.DataFrame:

@@ -361,6 +361,9 @@ class Measurements:
 
         elif isinstance(rets, pd.Series):
             statistics = {
+                "start_date": [rets.index[0]], 
+                "end_date": [rets.index[-1]], 
+                "risk_free_rate": [0.0], 
                 "Cumulative Return": [self.last_return(rets)],
                 "Annualized Return": [self.average_return(rets, freq=252)],
                 "Maximum Drawdown": [self.max_drawdown(rets)],

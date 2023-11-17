@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from _method_test import *
-from _measurements import *
-from _weight_optimization import *
-from _regime_detection import *
+from portfolio_management._method_test import *
+from portfolio_management._measurements import *
+from portfolio_management._weight_optimization import *
+from portfolio_management._regime_detection import *
 from typing import Any, Union
 from tqdm import tqdm, trange
 
